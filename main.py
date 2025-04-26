@@ -103,7 +103,6 @@ def send_sms():
 
             print(f"Message queued for {number}, ID: {message_id}")
 
-            # Start polling status
             attempts = 0
             max_attempts = 15
             recipient_status = "pending"
@@ -116,7 +115,6 @@ def send_sms():
                 )
                 check_data = check_res.json()
 
-                # Check per-recipient status if available
                 recipients = check_data.get("recipients", [])
                 if recipients:
                     recipient_status = recipients[0].get("state", "").lower()
