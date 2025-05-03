@@ -19,9 +19,9 @@ def checkNumber(number):
     if number is None:
         return 0
     if len(number) == 11 and number.startswith("09") and number.isdigit():
-        return 1
-    elif len(number) == 13 and number.startswith("+639") and number[1:].isdigit():
         return 2
+    elif len(number) == 13 and number.startswith("+639") and number[1:].isdigit():
+        return 1
     return 0
 
 def manage_phone_numbers():
@@ -35,8 +35,8 @@ def manage_phone_numbers():
         elif check_number == 1:
             pass
         elif check_number == 2:
-            new_number = new_number[4:]
-            new_number = "09" + new_number
+            new_number = new_number[2:]
+            new_number = "+639" + new_number
         if new_number:  
             phone_numbers.append(new_number)
             update_list()
