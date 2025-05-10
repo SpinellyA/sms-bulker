@@ -1,9 +1,15 @@
 {
-    "selected": "Alex's Phone",
+    "selected": "Dio's Phone",
     "devices": {
         "Alex's Phone": {
             "username": "YBWMYT",
-            "password": "q3psgbpimxnmtt"
+            "password": "q3psgbpimxnmtt",
+            "subscribed": true
+        },
+        "Dio's Phone": {
+            "username": "Y6HBDN",
+            "password": "4cua0bgpsy52n6",
+            "subscribed": false
         }
     }
 }
