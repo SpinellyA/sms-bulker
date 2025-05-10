@@ -4,10 +4,15 @@ from requests.auth import HTTPBasicAuth
 from tkinter import messagebox
 from phone_manager import load_phone_numbers
 from device_manager import GatewayCredentials
+from device_manager import is_device_out_of_load
 
 GATEWAY_URL = "https://api.sms-gate.app/3rdparty/v1/message"
 
 def send_sms(message_entry):
+    if is_device_out_of_load():
+        messagebox.showwarning("Out of Load", "This device is out of load. Please reload or select another device.")
+        return
+    
     creds = GatewayCredentials()
     username, password = creds.get()
 

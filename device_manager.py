@@ -42,6 +42,14 @@ def update_gateway_credentials():
     else:
         creds.set("", "")
 
+def is_device_out_of_load():
+    devices = load_devices()
+    selected_device = devices.get("selected")
+    if selected_device and selected_device in devices["devices"]:
+        is_subscribed = devices["devices"][selected_device].get("subscribed", False)
+        return not is_subscribed
+    return False
+
 def manage_devices(root):
     devices = load_devices()
 
