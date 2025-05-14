@@ -6,6 +6,7 @@ from phone_manager import manage_phone_numbers
 from sms_sender import send_sms, loop
 from device_manager import manage_devices, update_gateway_credentials
 from alert_manager import manage_alerts
+from help import help
 
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
@@ -28,6 +29,7 @@ message_entry.pack(pady=5)
 tk.Button(root, text="Send SMS", command=lambda: asyncio.run_coroutine_threadsafe(send_sms(message_entry), loop)).pack(pady=10)
 tk.Button(root, text="Manage Devices", command=lambda: manage_devices(root)).pack(pady=10)
 tk.Button(root, text="Alerts", command=lambda: manage_alerts()).pack(pady=10)
+tk.Button(root, text="Help and FAQ", command=lambda: help(root)).pack(pady=10)
 
 update_gateway_credentials()
 root.mainloop()
