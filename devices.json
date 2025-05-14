@@ -1,14 +1,23 @@
 {
-    "selected": "Dio's Phone",
+    "selected": "Alex Local",
     "devices": {
         "Alex's Phone": {
             "username": "YBWMYT",
             "password": "q3psgbpimxnmtt",
-            "subscribed": true
+            "subscribed": true,
+            "local": false,
+            "local_ip": ""
         },
         "Dio's Phone": {
             "username": "Y6HBDN",
             "password": "4cua0bgpsy52n6",
+            "subscribed": false
+        },
+        "Alex Local": {
+            "username": "sms",
+            "password": "D37ORO_z",
+            "local": true,
+            "local_ip": "192.168.68.100:8080",
             "subscribed": false
         }
     }
