@@ -90,7 +90,7 @@ def manage_alerts():
             row_frame.pack(fill="x", pady=4, padx=10)
 
             alert_button = tk.Button(row_frame, text=alert[:30], anchor="w",
-                                    command=lambda a=alert: send_specific_alert(a))
+                                    command=lambda a=alert: asyncio.run(send_specific_alert(a)))
             alert_button.pack(side="left", fill="x", expand=True)
 
             options_button = tk.Menubutton(row_frame, text="⋮", relief="raised")
