@@ -44,7 +44,7 @@ class SMSStatusGUI:
 
 async def send_sms(message_entry):
     creds = GatewayCredentials()
-    username, password = creds.get()
+    username, password, is_subscribed, is_local, local_ip = creds.get()
 
     phone_numbers = load_phone_numbers()
     message = message_entry.get("1.0", "end").strip()
@@ -78,6 +78,8 @@ async def send_sms(message_entry):
     sms_status_gui = status_gui_holder['gui']
     gui_root = status_gui_holder['root']
 
+        # TO DO: ITS STUCK ON PENDING, FIX IT SOMEHOW
+
     async def send_message(session, number):
         payload = {
             "message": message,
@@ -108,6 +110,7 @@ async def send_sms(message_entry):
 
                         recipients = check_data.get("recipients", [])
                         if recipients:
+                            print("Raw status response:", check_data)
                             recipient_status = recipients[0].get("state", "").lower()
                         else:
                             recipient_status = check_data.get("status", "").lower()
@@ -119,6 +122,8 @@ async def send_sms(message_entry):
                     print(f"Message successfully sent to {number}")
                     sms_status_gui.update_status(number, "Sent")
                     return True
+                elif recipient_status == "processed":
+                    sms_status_gui.update_status(number, "Probably Sent")
                 else:
                     print(f"Message to {number} not confirmed as sent (status: {recipient_status})")
                     sms_status_gui.update_status(number, "Failed")
