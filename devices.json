@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
     "selected": "Alex Local",
+=======
+    "selected": "Alex's Phone",
+>>>>>>> 8141ed0a0394a5108b0d57e5ad77c22679dab7f5
     "devices": {
         "Alex's Phone": {
             "username": "YBWMYT",
