@@ -1,6 +1,9 @@
 import tkinter as tk
 from tkinter import simpledialog, messagebox
 import json
+import pandas as pd
+from tkinter import filedialog
+
 
 PHONE_LIST_FILE = "phone_numbers.json"
 PHONE_INFO_FILE = "phone_info.json"
@@ -39,6 +42,51 @@ def checkNumber(number):
 def manage_phone_numbers():
     phone_numbers = load_phone_numbers()
     phone_info = load_phone_info()
+
+    def import_from_file():
+        file_path = filedialog.askopenfilename(title="Select CSV or Excel file",
+                                            filetypes=[("CSV files", "*.csv"), ("Excel files", "*.xlsx *.xls")])
+        if not file_path:
+            return
+
+        try:
+            if file_path.endswith(".csv"):
+                df = pd.read_csv(file_path, dtype=str)
+            else:
+                df = pd.read_excel(file_path, dtype=str)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to read file:\n{e}")
+            return
+
+        found_numbers = set()
+
+        for column in df.columns:
+            for val in df[column].dropna():
+                val = str(val).strip()
+                check = checkNumber(val)
+                if check == 1:
+                    found_numbers.add(val)
+                elif check == 2:
+                    normalized = "+639" + val[2:]
+                    found_numbers.add(normalized)
+
+        if not found_numbers:
+            messagebox.showinfo("No Valid Numbers", "No valid phone numbers found in the file.")
+            return
+
+        # Overwrite phone_numbers and phone_info
+        phone_numbers.clear()
+        phone_info.clear()
+
+        phone_numbers.extend(sorted(found_numbers))
+        for number in phone_numbers:
+            phone_info[number] = {"name": "", "notes": ""}
+
+        update_list()
+        save_phone_numbers(phone_numbers)
+        save_phone_info(phone_info)
+        messagebox.showinfo("Import Successful", f"Imported {len(phone_numbers)} phone numbers.")
+
 
     def add_number():
         new_number = simpledialog.askstring("Add Number", "Enter phone number:")
@@ -179,4 +227,5 @@ def manage_phone_numbers():
     tk.Button(phone_window, text="Delete", command=delete_number).pack(pady=2)
     tk.Button(phone_window, text="Rename", command=rename_number).pack(pady=2)
     tk.Button(phone_window, text="Manage info", command=manage_info).pack(pady=2)
+    tk.Button(phone_window, text="Import from CSV/XLSX", command=import_from_file).pack(pady=2)
     tk.Button(phone_window, text="Close", command=phone_window.destroy).pack(pady=2)
