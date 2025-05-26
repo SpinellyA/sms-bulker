@@ -1,6 +1,7 @@
 from requests.auth import HTTPBasicAuth
 from tkinter import messagebox
 from phone_manager import load_phone_numbers
+from phone_manager import load_phone_info
 from device_manager import GatewayCredentials
 import asyncio
 import aiohttp
@@ -44,10 +45,13 @@ class SMSStatusGUI:
 
 async def send_sms(message_entry):
     creds = GatewayCredentials()
-    username, password = creds.get()
+    username, password, is_subscribed, is_local, local_ip = creds.get()
 
     phone_numbers = load_phone_numbers()
+    phone_info = load_phone_info()
+
     message = message_entry.get("1.0", "end").strip()
+
 
     if not phone_numbers:
         messagebox.showerror("Error", "No phone numbers in the list.")
@@ -60,7 +64,7 @@ async def send_sms(message_entry):
     if not username or not password:
         messagebox.showerror("Error", "No device selected or invalid credentials.")
         return
-
+    
     gui_ready = threading.Event()
     status_gui_holder = {}
 
@@ -78,7 +82,20 @@ async def send_sms(message_entry):
     sms_status_gui = status_gui_holder['gui']
     gui_root = status_gui_holder['root']
 
-    async def send_message(session, number):
+        # TO DO: ITS STUCK ON PENDING, FIX IT SOMEHOW
+
+    def personalize_message(message, number):
+        if "%name%" in message:
+            name = phone_info.get(number, {}).get("name", "Unknown")
+            if name == "NO NAME":
+                name = "resident"
+            message = message.replace("%name%", name)
+        return message
+
+    async def send_message(session, number, original_message):
+
+        message = personalize_message(original_message, number)
+
         payload = {
             "message": message,
             "phoneNumbers": [number]
@@ -108,6 +125,7 @@ async def send_sms(message_entry):
 
                         recipients = check_data.get("recipients", [])
                         if recipients:
+                            print("Raw status response:", check_data)
                             recipient_status = recipients[0].get("state", "").lower()
                         else:
                             recipient_status = check_data.get("status", "").lower()
@@ -119,6 +137,8 @@ async def send_sms(message_entry):
                     print(f"Message successfully sent to {number}")
                     sms_status_gui.update_status(number, "Sent")
                     return True
+                elif recipient_status == "processed":
+                    sms_status_gui.update_status(number, "Probably Sent")
                 else:
                     print(f"Message to {number} not confirmed as sent (status: {recipient_status})")
                     sms_status_gui.update_status(number, "Failed")
@@ -128,9 +148,9 @@ async def send_sms(message_entry):
             print(f"Error sending to {number}: {e}")
             sms_status_gui.update_status(number, "Error")
             return False
-
+    original_message = message_entry.get("1.0", "end").strip()
     async with aiohttp.ClientSession() as session:
-        tasks = [send_message(session, number) for number in phone_numbers]
+        tasks = [send_message(session, number, original_message) for number in phone_numbers]
         results = await asyncio.gather(*tasks)
 
     success_count = sum(results)
