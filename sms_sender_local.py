@@ -1,6 +1,7 @@
 from requests.auth import HTTPBasicAuth
 from tkinter import messagebox
 from phone_manager import load_phone_numbers
+from phone_manager import load_phone_info
 from device_manager import GatewayCredentials
 from sms_sender import SMSStatusGUI
 import asyncio
@@ -20,6 +21,7 @@ async def send_sms_local(message_entry):
     username, password, is_subscribed, is_local, local_ip = creds.get()
 
     phone_numbers = load_phone_numbers()
+    phone_info = load_phone_info()
     message = message_entry.get("1.0", "end").strip()
 
     if not phone_numbers:
@@ -60,9 +62,17 @@ async def send_sms_local(message_entry):
 
     print(f"Using gateway: {gateway_url}")
 
+    def personalize_message(message, number):
+        if "%name%" in message:
+            name = phone_info.get(number, {}).get("name", "Unknown")
+            if name == "NO NAME":
+                name = "resident"
+            message = message.replace("%name%", name)
+        return message
+
     async def send_message(session, number):
         payload = {
-            "message": message,
+            "message": personalize_message(message, number),
             "phoneNumbers": [number]
         }
 
