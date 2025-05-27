@@ -8,45 +8,37 @@ def help(root):
     help_window.geometry("820x500")
     help_window.resizable(False, False)
 
-    # Canvas and scrollbar setup
     canvas = tk.Canvas(help_window, bg="#f9f9f9", highlightthickness=0)
     scrollbar = ttk.Scrollbar(help_window, orient="vertical", command=canvas.yview)
     canvas.configure(yscrollcommand=scrollbar.set)
 
     scrollbar.pack(side="right", fill="y")
     canvas.pack(side="left", fill="both", expand=True)
-
-    # Container frame inside canvas (this frame will be centered)
     container = tk.Frame(canvas, bg="#f9f9f9")
     canvas.create_window((0, 0), window=container, anchor="n")
 
-    # Function to resize and center container frame
+
     def on_canvas_configure(event):
         canvas_width = event.width
-        # Center the container frame horizontally inside the canvas
+       
         canvas.itemconfig(container_id, width=canvas_width)
-        # Update scrollregion
         canvas.configure(scrollregion=canvas.bbox("all"))
 
     container_id = canvas.create_window((0, 0), window=container, anchor="nw")
 
     canvas.bind('<Configure>', on_canvas_configure)
-
-    # Add padding inside container for neatness
     content_frame = tk.Frame(container, bg="#f9f9f9", padx=40, pady=20)
     content_frame.pack(fill="both", expand=True)
 
-    # Optional Logo Image (must be .png or .gif)
     try:
         logo = PhotoImage(file="up_logo.png")
         logo_label = tk.Label(content_frame, image=logo, bg="#f9f9f9")
-        logo_label.image = logo  # keep reference
+        logo_label.image = logo 
         logo_label.pack(pady=10)
-        logo_label.size = (100, 100)  # Adjust size as needed
+        logo_label.size = (100, 100)
     except Exception:
-        pass  # If logo not found, skip
+        pass  
 
-    # Header and Credits
     title = tk.Label(content_frame, text="University of the Philippines\nNSTP Section L – A.Y. 2024–2025",
                      font=("Helvetica", 14, "bold"), bg="#f9f9f9")
     credits = tk.Label(content_frame, text="For issues or feedback, email: accabildo@up.edu.ph",
@@ -60,7 +52,25 @@ def help(root):
         label.pack(fill="x", expand=True)
         section_frame.pack(fill="x", pady=8)
 
-    # Help Content Sections
+    add_section("📇 Manage Phone Numbers",
+        "Used for adding, editing, or removing phone numbers.\n"
+        "Each number can have an associated name. Messages with %name% will auto-fill the recipient's name.\n"
+        "All stored numbers will receive the message when you hit 'Send SMS'.")
+
+    add_section("❓ How Do I Use This App?",
+        "Please download the phone app at sms-gate.app to connect your phone to the computer.\n"
+        "Add your device to the app through \"Manage Devices\". You will see your credentials as soon as you open the app.\n"
+        "For updates, please refer to our github repository, github.com/SpinellyA/sms-bulker/ under the releases section.\n\n")
+    
+    add_section("📱 Manage Devices",
+        "You can log in to different devices to send text messages from them.\n"
+        "Think of this like logging in to Messenger or Facebook from multiple phones.\n"
+        "Ensure the device you're using is logged in and properly configured.\n")
+    add_section("📱 Manage Devices -> Local vs Cloud", 
+        "Cloud: Limited to 1000 messages a day, but can be done with your phone anywhere as long as internet connection is available\n"
+        "Local: Unlimited messages and no limits, but both devices need to be connected to the same internet. (You can do this through hotspot)\n")
+
+
     add_section("📇 Manage Phone Numbers",
         "Used for adding, editing, or removing phone numbers.\n"
         "Each number can have an associated name. Messages with %name% will auto-fill the recipient's name.\n"
@@ -70,14 +80,6 @@ def help(root):
         "Write your message in the text box.\n"
         "Use '%name%' to automatically personalize messages with each contact’s name.\n"
         "Example: 'Hello %name%!' becomes 'Hello Juan!' for that contact.")
-
-    add_section("📱 Manage Devices",
-        "You can log in to different devices to send text messages from them.\n"
-        "Think of this like logging in to Messenger or Facebook from multiple phones.\n"
-        "Ensure the device you're using is logged in and properly configured.\n")
-    add_section("📱 Manage Devices -> Local vs Cloud", 
-        "Cloud: Limited to 1000 messages a day, but can be done with your phone anywhere as long as internet connection is available\n"
-        "Local: Unlimited messages and no limits, but both devices need to be connected to the same internet.\n")
 
     add_section("🚨 Alerts",
         "Coming soon! This section will show scheduled or emergency notifications, system alerts, and message statuses.")
