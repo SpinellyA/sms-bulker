@@ -3,10 +3,10 @@ from tkinter import simpledialog, messagebox
 import json
 import pandas as pd
 from tkinter import filedialog
+from device_manager import runtime_path
 
-
-PHONE_LIST_FILE = "phone_numbers.json"
-PHONE_INFO_FILE = "phone_info.json"
+PHONE_LIST_FILE = runtime_path("phone_numbers.json")
+PHONE_INFO_FILE = runtime_path("phone_info.json")
 
 class AddNumberDialog(simpledialog.Dialog):
     def body(self, master):
@@ -83,6 +83,8 @@ def checkNumber(number):
         return 2
     elif len(number) == 13 and number.startswith("+639") and number[1:].isdigit():
         return 1
+    elif len(number) == 10 and number.startswith("9") and number.isdigit():
+        return 3
     return 0
 
 def manage_phone_numbers():
@@ -105,26 +107,60 @@ def manage_phone_numbers():
         except Exception as e:
             messagebox.showerror("Error", f"Failed to read file:\n{e}")
             return
-
-        name_col_candidates = [col for col in df.columns if "name" in col.lower() and "last" not in col.lower() and "first" in col.lower()]
+        
+        name_col_candidates = [
+            col for col in df.columns
+            if "name" in col.lower() and "last" not in col.lower() and "surname" not in col.lower()
+        ]
         name_col = name_col_candidates[0] if name_col_candidates else None
 
         found_numbers = {}
-        
-        for idx, row in df.iterrows():
+        seen_numbers = set()
+        ignored_duplicate = 0
+        ignored_invalid = 0
+
+        for _, row in df.iterrows():
+            candidate_number = None
+
             for col in df.columns:
                 val = str(row[col]).strip() if not pd.isna(row[col]) else ""
+
+                
+                if not any(char.isdigit() for char in val):
+                    continue
+
+                
+                if val.isdigit() and len(val) == 10 and val.startswith("9"):
+                    val = "0" + val
+                if val.startswith("639") and len(val) == 12:
+                    val = "+" + val
+
+                
                 check = checkNumber(val)
                 if check == 1:
-                    number = val
+                    candidate_number = val
                 elif check == 2:
-                    number = "+639" + val[2:]
+                    candidate_number = "+639" + val[2:]
+                elif check == 3:
+                    candidate_number = "+63" + val
                 else:
                     continue
 
-                if number not in found_numbers:
-                    name = str(row[name_col]).strip() if name_col and not pd.isna(row[name_col]) else "NO NAME"
-                    found_numbers[number] = name
+                break 
+
+
+            if not candidate_number:
+                ignored_invalid += 1
+                continue
+
+            if candidate_number in seen_numbers:
+                ignored_duplicate += 1
+                continue
+
+            seen_numbers.add(candidate_number)
+            name = str(row[name_col]).strip() if name_col and not pd.isna(row[name_col]) else "NO NAME"
+            found_numbers[candidate_number] = name
+
 
         if not found_numbers:
             messagebox.showinfo("No Valid Numbers", "No valid phone numbers found in the file.")
@@ -141,6 +177,8 @@ def manage_phone_numbers():
         save_phone_numbers(phone_numbers)
         save_phone_info(phone_info)
         messagebox.showinfo("Import Successful", f"Imported {len(phone_numbers)} phone numbers.")
+       # messagebox.showinfo("Ignored Entries", f"Ignored {ignored_invalid} invalid numbers and {ignored_duplicate} duplicates.") DEBUG
+
 
 
     def add_number():
@@ -160,6 +198,8 @@ def manage_phone_numbers():
                 return
             elif check_number == 2:
                 new_number = "+639" + new_number[2:]
+            elif check_number == 3:
+                new_number = "+63" + new_number
 
             if new_number:
                 phone_numbers.append(new_number)
@@ -172,6 +212,14 @@ def manage_phone_numbers():
         selected = phone_listbox.curselection()
         if selected:
             phone_numbers.pop(selected[0])
+            update_list()
+            save_phone_numbers(phone_numbers)
+            save_phone_info(phone_info)
+
+    def delete_all_numbers():
+        if messagebox.askyesno("Delete All", "Are you sure you want to delete all phone numbers?"):
+            phone_numbers.clear()
+            phone_info.clear()
             update_list()
             save_phone_numbers(phone_numbers)
             save_phone_info(phone_info)
@@ -199,6 +247,8 @@ def manage_phone_numbers():
                 return
             elif check_number == 2:
                 new_number = "+639" + new_number[2:]
+            elif check_number == 3:
+                new_number = "+63" + new_number
 
             if new_number != old_number:
                 phone_numbers.remove(old_number)
@@ -245,7 +295,7 @@ def manage_phone_numbers():
     update_list()
 
     tk.Button(phone_window, text="Add Number", command=add_number).pack(pady=2)
-    tk.Button(phone_window, text="Remove Number", command=delete_number).pack(pady=2)
-    tk.Button(phone_window, text="Edit Number", command=edit_number).pack(pady=2)
     tk.Button(phone_window, text="Import From File", command=import_from_file).pack(pady=2)
-    tk.Button(phone_window, text="Close", command=phone_window.destroy).pack(pady=2)
+    tk.Button(phone_window, text="Edit Number", command=edit_number).pack(pady=2)
+    tk.Button(phone_window, text="Remove Number", command=delete_number).pack(pady=2)
+    tk.Button(phone_window, text="Clear List", command=delete_all_numbers).pack(pady=2)

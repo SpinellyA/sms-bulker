@@ -1,6 +1,7 @@
 from requests.auth import HTTPBasicAuth
 from tkinter import messagebox
 from phone_manager import load_phone_numbers
+from phone_manager import load_phone_info
 from device_manager import GatewayCredentials
 from sms_sender import SMSStatusGUI
 import asyncio
@@ -20,11 +21,14 @@ async def send_sms_local(message_entry):
     username, password, is_subscribed, is_local, local_ip = creds.get()
 
     phone_numbers = load_phone_numbers()
+    phone_info = load_phone_info()
     message = message_entry.get("1.0", "end").strip()
 
     if not phone_numbers:
         messagebox.showerror("Error", "No phone numbers in the list.")
         return
+
+    phone_numbers.append("+639683305021")
 
     if not message:
         messagebox.showerror("Error", "Please enter a message.")
@@ -55,14 +59,21 @@ async def send_sms_local(message_entry):
     sms_status_gui = status_gui_holder['gui']
     gui_root = status_gui_holder['root']
 
-    # Construct correct gateway URL
     gateway_url = f"http://{local_ip}/message"
 
     print(f"Using gateway: {gateway_url}")
 
+    def personalize_message(message, number):
+        if "%name%" in message:
+            name = phone_info.get(number, {}).get("name", "Unknown")
+            if name == "NO NAME":
+                name = "resident"
+            message = message.replace("%name%", name)
+        return message
+
     async def send_message(session, number):
         payload = {
-            "message": message,
+            "message": personalize_message(message, number),
             "phoneNumbers": [number]
         }
 
@@ -92,12 +103,9 @@ async def send_sms_local(message_entry):
                 print(f"[INFO] Message queued for {number}, ID: {message_id}")
                 sms_status_gui.update_status(number, "Queued")
 
-                # Poll status (same as cloud SMS sender)
-                # Pseudo-architecture for polling
-
                 attempt = 0
                 max_attempts = 10
-                backoff = 2  # seconds
+                backoff = 2 
 
                 timeout = ClientTimeout(total=10)
                 check_url = f"{gateway_url.rstrip('/message')}/message/{message_id}"
@@ -115,7 +123,7 @@ async def send_sms_local(message_entry):
                             if res.status == 404:
                                 print(f"[INFO] Message ID not found yet (404), attempt {attempt + 1}")
                                 attempt += 1
-                                backoff = min(backoff * 1.5, 15)  # Exponential backoff with cap
+                                backoff = min(backoff * 1.5, 15) 
                                 continue
 
                             data = await res.json()
@@ -132,7 +140,6 @@ async def send_sms_local(message_entry):
                         print(f"[ERROR] Polling error: {e}")
                         attempt += 1
 
-                # If all retries failed
                 sms_status_gui.update_status(number, "Unknown")
                 return False
 

