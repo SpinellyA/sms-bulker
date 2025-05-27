@@ -1,6 +1,4 @@
-# sms-bulker
-for UP Cebu NSTP Section L
-
-Hello! You may learn git using youtube videos, but if you have any inquiries, you can ask me directly for help.
-
-This is here to test stuff
+✨ From NSTP Section L, with 💖
+We're proud to release this for our fieldwork, community outreach, and beyond.
+For updates, bug reports, or contributions, visit:
+🔗 github.com/SpinellyA/sms-bulker
